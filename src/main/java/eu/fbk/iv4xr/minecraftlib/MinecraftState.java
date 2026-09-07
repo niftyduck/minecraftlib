@@ -75,6 +75,22 @@ public class MinecraftState extends Iv4xrAgentState<Void> {
 		return hp != null && hp > 0f;
 	}
 
+	/**
+	 * How many times the bot has died since the testbench started.
+	 *
+	 * Use this, not {@link #isAgentAlive()}, to find out whether the agent died:
+	 * mineflayer respawns it automatically and the server heals it, so health is
+	 * back to full long before the next observation and the death leaves no trace
+	 * in it. Comparing this counter against a value taken earlier catches the
+	 * death no matter how coarse the polling is.
+	 *
+	 * @return the count, or null against a testbench that does not report it
+	 */
+	public Integer getDeathCount() {
+		WorldEntity a = getAgent();
+		return a == null ? null : (Integer) a.properties.get("deaths");
+	}
+
 	public Vec3 getAgentPosition() {
 		return worldmodel == null ? null : worldmodel.position;
 	}

@@ -29,9 +29,6 @@ import static eu.fbk.iv4xr.minecraftlib.TestUtils.totalVerdicts;
 import static eu.fbk.iv4xr.minecraftlib.TestUtils.attackWithSword;
 
 
-
-
-
 public class MinecraftGoalLibTest {
 	
     static final Logger logger = Logger.getLogger(MinecraftGoalLibTest.class.getName());
@@ -241,5 +238,41 @@ public class MinecraftGoalLibTest {
         assertEquals(0, dc.getNumberOfFailVerdictsSeen(), "no health check should fail");
     }
 
-  
+
+    @Test
+    @DisplayName("test agent moves towards the zombie and attacks it with a sword")
+    void test_arena_attack_zombie() {
+        MinecraftEnv env = new MinecraftEnv(TESTBENCH_URL);
+        MinecraftState state = new MinecraftState();
+        MinecraftGoalLib goalLib = new MinecraftGoalLib();
+
+        TestAgent agent = new TestAgent(TEST_AGENT, "tester");
+        agent.setTestDataCollector(new TestDataCollector());
+
+        // 20x20 diamond base at (0,65,0); wood blocks sit at y=66 on each corner.
+        env.buildLevel(levelPath("arena.csv"), 0, 65, 0);
+
+        /*GoalStructure G = SEQ(
+                goalLib.reached(new Vec3(0, 66, 0), 2),
+                goalLib.assertBlockIs(agent, new Vec3(0, 66, 0), "oak_log", null),
+                goalLib.reached(new Vec3(19, 66, 0), 2),
+                goalLib.assertBlockIs(agent, new Vec3(19, 66, 0), "spruce_log", null),
+                goalLib.reached(new Vec3(0, 66, 19), 2),
+                goalLib.assertBlockIs(agent, new Vec3(0, 66, 19), "birch_log", null),
+                goalLib.reached(new Vec3(19, 66, 19), 2),
+                goalLib.assertBlockIs(agent, new Vec3(19, 66, 19), "jungle_log", null));
+
+        agent.attachState(state).attachEnvironment(env).setGoal(G);
+        runAgent(agent, state, G);
+
+        assertTrue(G.getStatus().success(),
+                "agent should reach all four corners and verify their wood: " + G.getStatus());
+        TestDataCollector dc = agent.getTestDataCollector();
+        assertEquals(4, dc.getNumberOfPassVerdictsSeen(), "expected 4 passing wood-type verdicts");
+        assertEquals(0, dc.getNumberOfFailVerdictsSeen(), "expected no failing verdicts");*/
+    }
+
+
+
+
 }

@@ -30,6 +30,8 @@ public class StatusToWorldModel {
 	public static final String STATUS = "status";
 	public static final String LAST_ACTION_RESULT = "lastActionResult";
 	public static final String INVENTORY = "inventory";
+	/** Monotonic count of the bot's deaths, see {@link MinecraftState#getDeathCount()}. */
+	public static final String DEATHS = "deaths";
 	
 	/**
 	 * Covert the MineflyerTestbech json into a iv4xr world model.
@@ -62,6 +64,12 @@ public class StatusToWorldModel {
 		
 		if (has(status, STATUS)) {
 			agent.properties.put("botStatus", status.get(STATUS).getAsString());
+		}
+
+		// Death count. Absent when running against a testbench without patch P2,
+		// in which case the agent's death simply stays unobservable.
+		if (has(status, DEATHS)) {
+			agent.properties.put(DEATHS, status.get(DEATHS).getAsInt());
 		}
 		
         if (has(status, LAST_ACTION_RESULT)) {

@@ -389,6 +389,23 @@ public class MinecraftEnv extends Iv4xrEnvironment {
 		return sendAction(agentId, targetTagOrUuid, a);
 	}
 
+	/**
+	 * Read the current health of a mob via the testbench GET /tags/:uuid route
+	 * (backed by getMobHealth in abstraction.ts). Accepts either a tag (resolved
+	 * through {@link #tagUuids}) or a raw UUID.
+	 *
+	 * @param tagOrUuid entity tag (e.g. "zombie") or raw entity UUID
+	 * @return the current health, or null if the mob is dead / unknown / unreachable
+	 */
+	public Float getMobHealth(String tagOrUuid) {
+		String uuid = tagUuids.getOrDefault(tagOrUuid, tagOrUuid);
+		JsonObject resp = getJson("/tags/" + uuid);
+		if (resp == null || !resp.has("health") || resp.get("health").isJsonNull()) {
+			return null;
+		}
+		return resp.get("health").getAsFloat();
+	}
+
 	/////////////////////////////////////////////////////
 	///
 	/// Utilities
