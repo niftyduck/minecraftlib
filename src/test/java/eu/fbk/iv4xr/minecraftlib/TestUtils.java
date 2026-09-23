@@ -28,6 +28,7 @@ public class TestUtils {
     }
 
 	static final String TESTBENCH_URL = "http://localhost:3000";
+	static final String MINECRAFT_ADDRESS = "localhost:25565";
 	static final String TEST_AGENT = "bot";
 	static final int MAX_TICKS = 120;
 	

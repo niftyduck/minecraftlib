@@ -20,6 +20,7 @@ import eu.iv4xr.framework.spatial.Vec3;
 import nl.uu.cs.aplib.mainConcepts.GoalStructure;
 import static nl.uu.cs.aplib.AplibEDSL.SEQ;
 import static eu.fbk.iv4xr.minecraftlib.TestUtils.TESTBENCH_URL;
+import static eu.fbk.iv4xr.minecraftlib.TestUtils.MINECRAFT_ADDRESS;
 import static eu.fbk.iv4xr.minecraftlib.TestUtils.TEST_AGENT;
 import static eu.fbk.iv4xr.minecraftlib.TestUtils.assumeTestBenchRunning;
 import static eu.fbk.iv4xr.minecraftlib.TestUtils.levelPath;
@@ -45,6 +46,7 @@ public class MinecraftGoalLibTest {
     @DisplayName("test agent collects PASS verdicts")
     void ccollectVerdictsTest() {
         MinecraftEnv env = new MinecraftEnv(TESTBENCH_URL);
+        env.join(MINECRAFT_ADDRESS);
         MinecraftState state = new MinecraftState();
         MinecraftGoalLib goalLib = new MinecraftGoalLib();
 
@@ -77,6 +79,7 @@ public class MinecraftGoalLibTest {
     @DisplayName("test agent moves to each corner by coordinates and verifies the wood")
     void test_coordinate_move_to_wood_corners() {
         MinecraftEnv env = new MinecraftEnv(TESTBENCH_URL);
+        env.join(MINECRAFT_ADDRESS);
         MinecraftState state = new MinecraftState();
         MinecraftGoalLib goalLib = new MinecraftGoalLib();
 
@@ -118,6 +121,7 @@ public class MinecraftGoalLibTest {
     @DisplayName("anvil: combine two iron helmets (equiv. anvil-test.json)")
     void test_anvil_combine_helmets() {
         MinecraftEnv env = new MinecraftEnv(TESTBENCH_URL);
+        env.join(MINECRAFT_ADDRESS);
         MinecraftState state = new MinecraftState();
         MinecraftGoalLib goalLib = new MinecraftGoalLib();
 
@@ -163,6 +167,7 @@ public class MinecraftGoalLibTest {
     @DisplayName("MC-3697: entities in water vs TNT explosion (equiv. MC-3697.json)")
     void test_mc3697_entities_survive_explosion() {
         MinecraftEnv env = new MinecraftEnv(TESTBENCH_URL);
+        env.join(MINECRAFT_ADDRESS);
         MinecraftState state = new MinecraftState();
         MinecraftGoalLib goalLib = new MinecraftGoalLib();
 
@@ -209,6 +214,7 @@ public class MinecraftGoalLibTest {
     @DisplayName("damage: attack iron golem with each sword, verify its health each hit")
     void test_sword_damage_on_iron_golem() {
         MinecraftEnv env = new MinecraftEnv(TESTBENCH_URL);
+        env.join(MINECRAFT_ADDRESS);
         MinecraftState state = new MinecraftState();
         MinecraftGoalLib goalLib = new MinecraftGoalLib();
 
@@ -243,6 +249,7 @@ public class MinecraftGoalLibTest {
     @DisplayName("test agent moves towards the zombie and attacks it with a sword")
     void test_arena_attack_zombie() {
         MinecraftEnv env = new MinecraftEnv(TESTBENCH_URL);
+        env.join(MINECRAFT_ADDRESS);
         MinecraftState state = new MinecraftState();
         MinecraftGoalLib goalLib = new MinecraftGoalLib();
 

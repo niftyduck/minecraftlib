@@ -5,10 +5,15 @@ import eu.iv4xr.framework.mainConcepts.Iv4xrEnvironment;
 import eu.iv4xr.framework.mainConcepts.WorldModel;
 import eu.iv4xr.framework.spatial.Vec3;
 
+import java.io.IOException;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
@@ -27,6 +32,9 @@ public class MinecraftEnv extends Iv4xrEnvironment {
 	public static final String CMD_OBSERVE = "Observe";
 
 	final String mineflyerTestbenchUrl;
+	// Name of the bot this environment drives. The testbench hosts several bots
+	// and every route is prefixed by the bot name (/:bot/status, /:bot/action...).
+	final String botName;
 	final HttpClient http;
 	final Gson gson = new Gson();
 
@@ -47,6 +55,13 @@ public class MinecraftEnv extends Iv4xrEnvironment {
 	// Default MineflyerTestbench server
 	private final static String defaultMineflyerTestbenchServer = "http://localhost:3000";
 
+	// Default bot name: the username the single-bot testbench used to log in
+	// with, so a server that already made it OP keeps it OP.
+	public final static String defaultBotName = "Bot";
+
+	// Port appended to a server address that does not name one
+	private final static String defaultMinecraftPort = "25565";
+
 	/**
 	 * Use fafault MineflyerTestbench server URL
 	 */
@@ -60,8 +75,34 @@ public class MinecraftEnv extends Iv4xrEnvironment {
 	 * @param mineflyerTestbenchUrl
 	 */
 	public MinecraftEnv(String mineflyerTestbenchUrl) {
+		this(mineflyerTestbenchUrl, defaultBotName);
+	}
+
+	/**
+	 * Constructor accept the MineflyerTestbench server URL and the name of the
+	 * bot to drive
+	 * 
+	 * @param mineflyerTestbenchUrl
+	 * @param botName
+	 */
+	public MinecraftEnv(String mineflyerTestbenchUrl, String botName) {
 		this.mineflyerTestbenchUrl = mineflyerTestbenchUrl;
+		this.botName = botName;
 		this.http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(connectionTimeout)).build();
+	}
+
+	/**
+	 * Ask the testbench to log this bot into a Minecraft server. It must be called
+	 * before any other request: the testbench starts with no bot. Joining again
+	 * replaces the bot with a fresh one.
+	 * 
+	 * @param address Minecraft server as host[:port], port 25565 when omitted
+	 */
+	public void join(String address) {
+		if (!address.contains(":")) {
+			address = address + ":" + defaultMinecraftPort;
+		}
+		postJson("/join/" + URLEncoder.encode(address, StandardCharsets.UTF_8), new JsonObject());
 	}
 
 	/**
@@ -77,15 +118,22 @@ public class MinecraftEnv extends Iv4xrEnvironment {
 	/**
 	 * Call the build level service and save the tags
 	 * 
-	 * @param levelCsv
+	 * @param levelCsv path of the level csv file
 	 * @param x
 	 * @param y
 	 * @param z
 	 * @return
 	 */
 	public Map<String, Vec3> buildLevel(String levelCsv, int x, int y, int z) {
+		String csvContent;
+		try {
+			// the testbench takes the level itself, not a path on its own disk
+			csvContent = Files.readString(Path.of(levelCsv));
+		} catch (IOException e) {
+			throw new Iv4xrError("Cannot read level " + levelCsv + ": " + e.getMessage());
+		}
 		JsonObject jmsg = new JsonObject();
-		jmsg.addProperty("level_csv", levelCsv);
+		jmsg.addProperty("level_csv", csvContent);
 		jmsg.addProperty("x", x);
 		jmsg.addProperty("y", y);
 		jmsg.addProperty("z", z);
@@ -203,7 +251,7 @@ public class MinecraftEnv extends Iv4xrEnvironment {
 	 * @return
 	 */
 	public boolean place(String agentId, String tag, String face) {
-		JsonObject a = action("place");
+		JsonObject a = action("place_on");
 		a.addProperty("target", tag);
 		a.addProperty("face", face);
 		return sendAction(agentId, tag, a);
@@ -476,6 +524,16 @@ public class MinecraftEnv extends Iv4xrEnvironment {
 	}
 
 	/**
+	 * URI of a route of this bot
+	 * 
+	 * @param path route relative to the bot, e.g. "/status"
+	 * @return
+	 */
+	private URI botUri(String path) {
+		return URI.create(mineflyerTestbenchUrl + "/" + URLEncoder.encode(botName, StandardCharsets.UTF_8) + path);
+	}
+
+	/**
 	 * HTTP Get
 	 * 
 	 * @param path
@@ -483,7 +541,7 @@ public class MinecraftEnv extends Iv4xrEnvironment {
 	 */
 	JsonObject getJson(String path) {
 		try {
-			HttpRequest req = HttpRequest.newBuilder().uri(URI.create(mineflyerTestbenchUrl + path))
+			HttpRequest req = HttpRequest.newBuilder().uri(botUri(path))
 					.timeout(Duration.ofSeconds(connectionTimeout)).GET().build();
 			HttpResponse<String> resp = http.send(req, HttpResponse.BodyHandlers.ofString());
 			if (resp.statusCode() >= 300) {
@@ -506,7 +564,7 @@ public class MinecraftEnv extends Iv4xrEnvironment {
 	 */
 	JsonObject postJson(String path, JsonObject body) {
 		try {
-			HttpRequest req = HttpRequest.newBuilder().uri(URI.create(mineflyerTestbenchUrl + path))
+			HttpRequest req = HttpRequest.newBuilder().uri(botUri(path))
 					.timeout(Duration.ofSeconds(connectionTimeout)).header("Content-Type", "application/json")
 					.POST(HttpRequest.BodyPublishers.ofString(gson.toJson(body))).build();
 			HttpResponse<String> resp = http.send(req, HttpResponse.BodyHandlers.ofString());
