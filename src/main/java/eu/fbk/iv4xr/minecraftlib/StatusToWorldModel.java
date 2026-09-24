@@ -66,8 +66,8 @@ public class StatusToWorldModel {
 			agent.properties.put("botStatus", status.get(STATUS).getAsString());
 		}
 
-		// Death count. Absent when running against a testbench without patch P2,
-		// in which case the agent's death simply stays unobservable.
+		// Death count. Absent when running against a testbench older than
+		// se-fbk/MineflayerTestbench PR #10, in which case the agent's death stays unobservable.
 		if (has(status, DEATHS)) {
 			agent.properties.put(DEATHS, status.get(DEATHS).getAsInt());
 		}
